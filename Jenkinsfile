@@ -7,13 +7,20 @@ pipeline {
     }
 
     tools {
-        maven 'Maven 3'   // Nom que tu as défini dans Jenkins > Global Tools
+        maven 'Maven 3'   // Nom défini dans Global Tool Configuration
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'git@github.com:Ak-Arman/springboot-arman.git'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/Ak-Arman/springboot-arman.git',
+                        credentialsId: 'dockerhub-creds'
+                    ]]
+                ])
             }
         }
 

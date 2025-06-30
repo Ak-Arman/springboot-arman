@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'akarman/springboot-arman'  // Remplace par ton DockerHub réel si différent
+        DOCKER_IMAGE = 'akarman/springboot-arman'  // Ton repo DockerHub exact
         SONARQUBE = 'SonarQube'                    // Nom du serveur Sonar configuré dans Jenkins
     }
 
     tools {
-        maven 'Maven 3' // Nom de l'installation Maven configurée dans Jenkins > Global Tools
+        maven 'Maven 3' // Nom défini dans Jenkins > Global Tool Configuration
     }
 
     stages {

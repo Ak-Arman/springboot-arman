@@ -1,30 +1,24 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'boulki/springboot-app:arman-app'
-        SONARQUBE = 'SonarQube'
+    tools {
+        maven 'Maven 3' // Nom de l'installation Maven dans Jenkins (à configurer)
     }
 
-    tools {
-        maven 'Maven 3'
+    environment {
+        DOCKER_IMAGE = 'boulki/springboot-app:arman-app' // Ton image Docker complète
+        DOCKER_REGISTRY = '' // Si tu pushes vers un registry, mettre ici
+        // Par exemple 'docker.io/boulki/springboot-app:arman-app'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: 'refs/heads/main']],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/Ak-Arman/springboot-arman.git',
-                        credentialsId: 'dockerhub-creds'
-                    ]]
-                ])
+                checkout scm
             }
         }
 
-        stage('Test Maven') {
+        stage('Build') {
             steps {
                 dir('demo-github') {
                     sh 'mvn clean test'
@@ -35,30 +29,28 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('demo-github') {
-                    sh 'docker build -t $DOCKER_IMAGE .'
+                    // Build depuis le Dockerfile à la racine (../Dockerfile) avec contexte racine (..)
+                    sh "docker build -f ../Dockerfile -t ${DOCKER_IMAGE} .."
                 }
             }
         }
 
-        stage('Trivy Scan (optional)') {
+        stage('Push Docker Image') {
+            when {
+                expression { env.DOCKER_REGISTRY != '' }
+            }
             steps {
-                dir('demo-github') {
-                    sh 'trivy image $DOCKER_IMAGE || true'
-                }
+                sh "docker push ${DOCKER_IMAGE}"
             }
         }
+    }
 
-        stage('Push to DockerHub') {
-            steps {
-                dir('demo-github') {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                          echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                          docker push $DOCKER_IMAGE
-                        '''
-                    }
-                }
-            }
+    post {
+        success {
+            echo "Build et push terminés avec succès."
+        }
+        failure {
+            echo "Erreur durant la pipeline."
         }
     }
 }

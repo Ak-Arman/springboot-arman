@@ -32,16 +32,6 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                dir('demo-github') {
-                    withSonarQubeEnv("${SONARQUBE}") {
-                        sh 'mvn sonar:sonar'
-                    }
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 dir('demo-github') {

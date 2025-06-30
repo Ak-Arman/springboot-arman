@@ -2,18 +2,25 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'akarman/springboot-arman'  // Ton repo DockerHub exact
-        SONARQUBE = 'SonarQube'                    // Nom du serveur Sonar configuré dans Jenkins
+        DOCKER_IMAGE = 'boulki/springboot-app:arman-app'
+        SONARQUBE = 'SonarQube'
     }
 
     tools {
-        maven 'Maven 3' // Nom défini dans Jenkins > Global Tool Configuration
+        maven 'Maven 3'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/Ak-Arman/springboot-arman.git', credentialsId: 'dockerhub-creds'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'refs/heads/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/Ak-Arman/springboot-arman.git',
+                        credentialsId: 'dockerhub-creds'
+                    ]]
+                ])
             }
         }
 
